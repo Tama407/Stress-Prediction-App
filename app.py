@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix, accuracy_score
+from imblearn.over_sampling import SMOTENC
 
 warnings.filterwarnings("ignore", message="This figure includes Axes that are not compatible with tight_layout")
 
@@ -113,8 +114,13 @@ def run_pipeline(file_bytes):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    categorical_features = ['Gender', 'Tuition', 'Physical_Exercise', 'University_Type', 'Family_Income_Level']
+    categorical_idx = [X.columns.get_loc(col) for col in categorical_features]
+    smotenc = SMOTENC(categorical_features=categorical_idx, random_state=42, k_neighbors=5)
+    X_train_smote, y_train_smote = smotenc.fit_resample(X_train, y_train)
+
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    model.fit(X_train_smote, y_train_smote)
     y_pred = model.predict(X_test)
 
     accuracy = accuracy_score(y_test, y_pred)
